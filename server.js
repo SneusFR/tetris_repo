@@ -10,15 +10,7 @@ const app = express();
 // Middleware de sécurité
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "blob:", "http://localhost:3000", "http://localhost:5000"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      connectSrc: ["'self'", "http://localhost:3000", "http://localhost:5000"]
-    }
-  }
+  contentSecurityPolicy: false // Désactivé pour éviter les complications avec l'API JSON
 }));
 
 // Rate limiting général
@@ -43,11 +35,21 @@ const shopLimiter = rateLimit({
 app.use('/api', generalLimiter);
 
 // Configuration CORS améliorée
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  process.env.FRONTEND_URL,
+];
+
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000'], // Domaines frontend autorisés
+  origin: (origin, cb) => {
+    if (!origin) return cb(null, true);           // Postman etc.
+    const ok = allowedOrigins.some(o => o && origin.startsWith(o));
+    return ok ? cb(null, true) : cb(new Error('Not allowed by CORS'));
+  },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization']
 }));
 
 // Middleware
