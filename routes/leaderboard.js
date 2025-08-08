@@ -92,7 +92,7 @@ router.get('/global', optionalAuth, async (req, res) => {
     const { limit = 50, page = 1, period = 'all' } = req.query;
     const skip = (page - 1) * limit;
 
-    let sortField = 'ranking.rankingPoints';
+    let sortField = 'gameStats.bestScore';
     let matchCondition = {
       isActive: true,
       'settings.privacy.showProfile': true
@@ -244,7 +244,7 @@ router.get('/global', optionalAuth, async (req, res) => {
     if (req.user) {
       const userPosition = await User.countDocuments({
         ...matchCondition,
-        [sortField]: { $gt: req.user[sortField.split('.')[0]][sortField.split('.')[1]] }
+        'gameStats.bestScore': { $gt: req.user.gameStats.bestScore }
       });
       userRank = userPosition + 1;
     }
