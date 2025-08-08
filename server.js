@@ -22,7 +22,7 @@ const generalLimiter = rateLimit({
   }
 });
 
-// Rate limiting spécifique pour les routes de boutique
+// Rate limiting spécifiques pour les routes de boutique
 const shopLimiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
   max: 30, // limite à 30 requêtes par minute pour les routes boutique
