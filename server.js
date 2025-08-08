@@ -35,22 +35,27 @@ const shopLimiter = rateLimit({
 app.use('/api', generalLimiter);
 
 // Configuration CORS améliorée
-const allowedOrigins = [
+const allowed = [
   'http://localhost:5173',
   'http://localhost:3000',
-  process.env.FRONTEND_URL,
+  process.env.FRONTEND_URL,                     // prod: https://tetris-revolution.vercel.app
 ];
 
 app.use(cors({
-  origin: (origin, cb) => {
-    if (!origin) return cb(null, true);           // Postman etc.
-    const ok = allowedOrigins.some(o => o && origin.startsWith(o));
-    return ok ? cb(null, true) : cb(new Error('Not allowed by CORS'));
+  origin(origin, callback) {
+    if (!origin) return callback(null, true);   // Postman/curl
+    const vercelPreview = /^https:\/\/tetris-revolution.*\.vercel\.app$/.test(origin);
+    const ok = allowed.filter(Boolean).includes(origin) || vercelPreview;
+    // 👉 NE PAS jeter d'erreur ici
+    return callback(null, ok);
   },
   credentials: true,
   methods: ['GET','POST','PUT','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization']
+  allowedHeaders: ['Content-Type','Authorization'],
 }));
+
+// pense aussi au preflight
+app.options('*', cors());
 
 // Middleware
 app.use(express.json({ limit: '10mb' }));
